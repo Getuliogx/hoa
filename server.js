@@ -1,55 +1,38 @@
 import http from "http";
 import { URL } from "url";
+import { getHoroscope, HoroscopeError } from "horoscopefree";
 
 const PORT = process.env.PORT || 3000;
 
 const signos = {
-  aries: { nome: "Áries", emoji: "♈" },
-  touro: { nome: "Touro", emoji: "♉" },
-  gemeos: { nome: "Gêmeos", emoji: "♊" },
-  cancer: { nome: "Câncer", emoji: "♋" },
-  leao: { nome: "Leão", emoji: "♌" },
-  virgem: { nome: "Virgem", emoji: "♍" },
-  libra: { nome: "Libra", emoji: "♎" },
-  escorpiao: { nome: "Escorpião", emoji: "♏" },
-  sagitario: { nome: "Sagitário", emoji: "♐" },
-  capricornio: { nome: "Capricórnio", emoji: "♑" },
-  aquario: { nome: "Aquário", emoji: "♒" },
-  peixes: { nome: "Peixes", emoji: "♓" }
+  aries: { key: "aries", nome: "Áries", emoji: "♈" },
+  touro: { key: "taurus", nome: "Touro", emoji: "♉" },
+  gemeos: { key: "gemini", nome: "Gêmeos", emoji: "♊" },
+  cancer: { key: "cancer", nome: "Câncer", emoji: "♋" },
+  leao: { key: "leo", nome: "Leão", emoji: "♌" },
+  virgem: { key: "virgo", nome: "Virgem", emoji: "♍" },
+  libra: { key: "libra", nome: "Libra", emoji: "♎" },
+  escorpiao: { key: "scorpio", nome: "Escorpião", emoji: "♏" },
+  sagitario: { key: "sagittarius", nome: "Sagitário", emoji: "♐" },
+  capricornio: { key: "capricorn", nome: "Capricórnio", emoji: "♑" },
+  aquario: { key: "aquarius", nome: "Aquário", emoji: "♒" },
+  peixes: { key: "pisces", nome: "Peixes", emoji: "♓" }
 };
 
 const aliases = {
   aries: "aries", "áries": "aries",
-  touro: "touro",
-  gemeos: "gemeos", "gêmeos": "gemeos",
+  touro: "touro", taurus: "touro",
+  gemeos: "gemeos", "gêmeos": "gemeos", gemini: "gemeos",
   cancer: "cancer", "câncer": "cancer",
-  leao: "leao", "leão": "leao",
-  virgem: "virgem",
+  leao: "leao", "leão": "leao", leo: "leao",
+  virgem: "virgem", virgo: "virgem",
   libra: "libra",
-  escorpiao: "escorpiao", "escorpião": "escorpiao",
-  sagitario: "sagitario", "sagitário": "sagitario",
-  capricornio: "capricornio", "capricórnio": "capricornio",
-  aquario: "aquario", "aquário": "aquario",
-  peixes: "peixes"
+  escorpiao: "escorpiao", "escorpião": "escorpiao", scorpio: "escorpiao",
+  sagitario: "sagitario", "sagitário": "sagitario", sagittarius: "sagitario",
+  capricornio: "capricornio", "capricórnio": "capricornio", capricorn: "capricornio",
+  aquario: "aquario", "aquário": "aquario", aquarius: "aquario",
+  peixes: "peixes", pisces: "peixes"
 };
-
-const mensagens = [
-  "o dia pede calma e foco. Evite responder no impulso e escolha bem suas palavras.",
-  "uma oportunidade pode aparecer de um jeito simples. Preste atenção nos sinais e não adie o que precisa ser feito.",
-  "sua energia favorece conversas importantes. Seja direto, mas não perca a paciência.",
-  "hoje é bom para organizar pendências e cortar o que está te atrasando.",
-  "o momento favorece decisões práticas. Menos promessa e mais atitude.",
-  "algo pode sair diferente do planejado, mas isso pode abrir um caminho melhor.",
-  "confie mais no seu instinto, mas confira os detalhes antes de agir.",
-  "o dia favorece reconciliação, acordos e mensagens que estavam demorando para chegar.",
-  "você pode receber uma resposta ou perceber algo que muda sua visão sobre uma situação.",
-  "evite gastar energia com quem não soma. Foque no que te aproxima do seu objetivo.",
-  "uma conversa pode trazer clareza. Não guarde tudo só para você.",
-  "hoje combina com recomeços pequenos, mas importantes. Faça uma coisa de cada vez.",
-  "sua sorte melhora quando você para de insistir no que já mostrou sinais de desgaste.",
-  "o dia pede cuidado com ansiedade. Respire, observe e aja na hora certa.",
-  "uma boa notícia pode vir através de alguém próximo ou de uma mensagem inesperada."
-];
 
 function normalizar(valor) {
   return String(valor || "")
@@ -68,12 +51,24 @@ function dataBrasil() {
   }).format(new Date());
 }
 
-function hashTexto(texto) {
-  let h = 0;
-  for (let i = 0; i < texto.length; i++) {
-    h = (h * 31 + texto.charCodeAt(i)) >>> 0;
-  }
-  return h;
+function limparTexto(texto) {
+  return String(texto || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/\s+([,.!?;:])/g, "$1")
+    .trim();
+}
+
+function limitarChat(texto, limite = 485) {
+  if (texto.length <= limite) return texto;
+  const cortado = texto.slice(0, limite - 3);
+  const ultimoPonto = Math.max(
+    cortado.lastIndexOf("."),
+    cortado.lastIndexOf("!"),
+    cortado.lastIndexOf("?")
+  );
+  if (ultimoPonto > 250) return cortado.slice(0, ultimoPonto + 1);
+  return cortado.trim() + "...";
 }
 
 function responder(res, status, texto) {
@@ -85,34 +80,63 @@ function responder(res, status, texto) {
   res.end(texto);
 }
 
-const server = http.createServer((req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host}`);
+async function pegarHoroscopo(signoInterno, completo) {
+  const info = signos[signoInterno];
+  const hoje = dataBrasil();
 
-  if (url.pathname === "/" || url.pathname === "/health") {
-    return responder(res, 200, "API do horóscopo online. Use /signo?signo=aries");
+  const resultado = await getHoroscope(info.key, hoje, "pt");
+  const texto = limparTexto(resultado.text);
+
+  if (!texto) {
+    throw new Error("Texto vazio recebido da fonte.");
   }
 
-  if (url.pathname === "/signo" || url.pathname === "/api/signo") {
-    const recebidoOriginal = url.searchParams.get("signo") || "";
-    const recebido = normalizar(recebidoOriginal);
-    const signo = aliases[recebido];
+  const resposta = `${info.emoji} ${info.nome} hoje: ${texto}`;
 
-    if (!recebido) {
-      return responder(res, 200, "Use assim: !signo aries | touro | gemeos | cancer | leao | virgem | libra | escorpiao | sagitario | capricornio | aquario | peixes");
+  // Twitch/StreamElements normalmente precisa caber em uma mensagem só.
+  // Use /signo?signo=aries&full=1 no navegador para ver sem corte.
+  return completo ? resposta : limitarChat(resposta);
+}
+
+const server = http.createServer(async (req, res) => {
+  try {
+    const url = new URL(req.url, `http://${req.headers.host}`);
+
+    if (url.pathname === "/" || url.pathname === "/health") {
+      return responder(res, 200, "API do horóscopo real online. Use /signo?signo=aries");
     }
 
-    if (!signo) {
-      return responder(res, 200, "Signo inválido. Use: aries, touro, gemeos, cancer, leao, virgem, libra, escorpiao, sagitario, capricornio, aquario ou peixes.");
+    if (url.pathname === "/signo" || url.pathname === "/api/signo") {
+      const recebidoOriginal = url.searchParams.get("signo") || "";
+      const recebido = normalizar(recebidoOriginal);
+      const signoInterno = aliases[recebido];
+      const completo = ["1", "true", "sim", "full", "completo"].includes(
+        normalizar(url.searchParams.get("full"))
+      );
+
+      if (!recebido) {
+        return responder(res, 200, "Use assim: !signo aries | touro | gemeos | cancer | leao | virgem | libra | escorpiao | sagitario | capricornio | aquario | peixes");
+      }
+
+      if (!signoInterno) {
+        return responder(res, 200, "Signo inválido. Use: aries, touro, gemeos, cancer, leao, virgem, libra, escorpiao, sagitario, capricornio, aquario ou peixes.");
+      }
+
+      const texto = await pegarHoroscopo(signoInterno, completo);
+      return responder(res, 200, texto);
     }
 
-    const hoje = dataBrasil();
-    const idx = hashTexto(`${hoje}-${signo}`) % mensagens.length;
-    const info = signos[signo];
+    return responder(res, 404, "Not Found");
+  } catch (erro) {
+    console.error("ERRO:", erro);
 
-    return responder(res, 200, `${info.emoji} ${info.nome} hoje: ${mensagens[idx]}`);
+    let detalhe = "fonte indisponível no momento";
+    if (erro instanceof HoroscopeError && erro.code) {
+      detalhe = erro.code;
+    }
+
+    return responder(res, 200, `Não consegui pegar o horóscopo real agora (${detalhe}). Tente novamente depois.`);
   }
-
-  return responder(res, 404, "Not Found");
 });
 
 server.listen(PORT, () => {

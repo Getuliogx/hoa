@@ -1,11 +1,14 @@
 {
-  "name": "horoscopo-streamelements",
-  "version": "1.0.0",
+  "name": "horoscopo-real-streamelements",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "start": "node server.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.18.0"
+  },
+  "dependencies": {
+    "horoscopefree": "git+https://github.com/vitorebatista/horoscopefree.git"
   }
 }
