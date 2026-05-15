@@ -4,18 +4,18 @@ import { URL } from "url";
 const PORT = process.env.PORT || 3000;
 
 const signos = {
-  aries: { api: "aries", nome: "Áries", aliases: ["aries", "áries"] },
-  touro: { api: "taurus", nome: "Touro", aliases: ["touro", "taurus"] },
-  gemeos: { api: "gemini", nome: "Gêmeos", aliases: ["gemeos", "gêmeos", "gemini"] },
-  cancer: { api: "cancer", nome: "Câncer", aliases: ["cancer", "câncer"] },
-  leao: { api: "leo", nome: "Leão", aliases: ["leao", "leão", "leo"] },
-  virgem: { api: "virgo", nome: "Virgem", aliases: ["virgem", "virgo"] },
-  libra: { api: "libra", nome: "Libra", aliases: ["libra"] },
-  escorpiao: { api: "scorpio", nome: "Escorpião", aliases: ["escorpiao", "escorpião", "scorpio"] },
-  sagitario: { api: "sagittarius", nome: "Sagitário", aliases: ["sagitario", "sagitário", "sagittarius"] },
-  capricornio: { api: "capricorn", nome: "Capricórnio", aliases: ["capricornio", "capricórnio", "capricorn"] },
-  aquario: { api: "aquarius", nome: "Aquário", aliases: ["aquario", "aquário", "aquarius"] },
-  peixes: { api: "pisces", nome: "Peixes", aliases: ["peixes", "pisces"] }
+  aries: { api: "aries", nome: "Áries", emoji: "♈", aliases: ["aries", "áries"] },
+  touro: { api: "taurus", nome: "Touro", emoji: "♉", aliases: ["touro", "taurus"] },
+  gemeos: { api: "gemini", nome: "Gêmeos", emoji: "♊", aliases: ["gemeos", "gêmeos", "gemini"] },
+  cancer: { api: "cancer", nome: "Câncer", emoji: "♋", aliases: ["cancer", "câncer"] },
+  leao: { api: "leo", nome: "Leão", emoji: "♌", aliases: ["leao", "leão", "leo"] },
+  virgem: { api: "virgo", nome: "Virgem", emoji: "♍", aliases: ["virgem", "virgo"] },
+  libra: { api: "libra", nome: "Libra", emoji: "♎", aliases: ["libra"] },
+  escorpiao: { api: "scorpio", nome: "Escorpião", emoji: "♏", aliases: ["escorpiao", "escorpião", "scorpio"] },
+  sagitario: { api: "sagittarius", nome: "Sagitário", emoji: "♐", aliases: ["sagitario", "sagitário", "sagittarius"] },
+  capricornio: { api: "capricorn", nome: "Capricórnio", emoji: "♑", aliases: ["capricornio", "capricórnio", "capricorn"] },
+  aquario: { api: "aquarius", nome: "Aquário", emoji: "♒", aliases: ["aquario", "aquário", "aquarius"] },
+  peixes: { api: "pisces", nome: "Peixes", emoji: "♓", aliases: ["peixes", "pisces"] }
 };
 
 function normalizar(valor) {
@@ -58,7 +58,6 @@ function removerRepeticaoDoSigno(texto, info) {
     ...info.aliases
   ].filter(Boolean))];
 
-  // Remove começo repetido: "Hoje, Virgem,", "Virgem hoje:", "Para Virgem,"
   for (let rodada = 0; rodada < 8; rodada++) {
     const antes = t;
 
@@ -161,7 +160,10 @@ async function pegar(signoKey) {
   }
 
   const limpo = removerRepeticaoDoSigno(pt, info);
-  const final = cortarChat(`${info.nome} hoje: ${limpo}`);
+
+  // FORMATO EXATO:
+  // ♍ Virgem hoje: mensagem...
+  const final = cortarChat(`${info.emoji} ${info.nome} hoje: ${limpo}`);
 
   cache.set(cacheKey, { ts: Date.now(), texto: final });
   return final;

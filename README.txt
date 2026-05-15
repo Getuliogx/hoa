@@ -1,7 +1,7 @@
-HORÓSCOPO FINAL - SÓ !SIGO
+HORÓSCOPO FINAL - !SIGO COM EMOTE DO SIGNO
 
 Formato da resposta:
-Virgem hoje: mensagem do dia...
+♍ Virgem hoje: mensagem do dia...
 
 Render:
 Build Command:

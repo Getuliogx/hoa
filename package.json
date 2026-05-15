@@ -1,6 +1,6 @@
 {
-  "name": "horoscopo-sigo-final",
-  "version": "5.0.0",
+  "name": "horoscopo-sigo-com-emote",
+  "version": "6.0.0",
   "type": "module",
   "scripts": {
     "start": "node server.js"
