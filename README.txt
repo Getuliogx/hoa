@@ -1,6 +1,6 @@
-HORÓSCOPO STREAMELEMENTS - API JSON + TRADUÇÃO PT-BR
+HORÓSCOPO STREAMELEMENTS - SEM REPETIR SIGNO + PARTES
 
-RENDER:
+Render:
 
 Build Command:
 npm install
@@ -8,17 +8,26 @@ npm install
 Start Command:
 npm start
 
-TESTE NO NAVEGADOR:
-https://SEU-LINK.onrender.com/signo?signo=touro
+Teste normal:
+https://SEU-LINK.onrender.com/signo?signo=peixes
 
-TESTE COMPLETO NO NAVEGADOR:
-https://SEU-LINK.onrender.com/signo?signo=touro&full=1
+Teste completo no navegador:
+https://SEU-LINK.onrender.com/signo?signo=peixes&full=1
 
-COMANDO STREAMELEMENTS:
-$(customapi https://SEU-LINK.onrender.com/signo?signo=$(queryescape ${1:}))
+Teste em partes:
+https://SEU-LINK.onrender.com/signo?signo=peixes&parte=1
+https://SEU-LINK.onrender.com/signo?signo=peixes&parte=2
+https://SEU-LINK.onrender.com/signo?signo=peixes&parte=3
 
-COMANDO PELO CHAT:
-!command edit !signo $(customapi https://SEU-LINK.onrender.com/signo?signo=$(queryescape ${1:}))
+StreamElements - melhor comando:
+$(customapi https://SEU-LINK.onrender.com/signo?signo=$(queryescape ${1:})&parte=$(queryescape ${2:}))
 
-ALIAS !SIGO:
-!command edit !sigo $(customapi https://SEU-LINK.onrender.com/signo?signo=$(queryescape ${1:}))
+Uso no chat:
+!signo peixes
+!signo peixes 2
+!signo peixes 3
+
+Alias:
+!sigo peixes
+!sigo peixes 2
+!sigo peixes 3
