@@ -1,0 +1,14 @@
+{
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "dependencies": {
+    "@hono/node-server": "latest",
+    "hono": "latest",
+    "horoscopefree": "git+https://github.com/vitorebatista/horoscopefree.git"
+  }
+}
